@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perceptrón 4 Variables - Predicción Climática</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-8 font-sans">
+
+    <div class="max-w-6xl mx-auto">
+        <header class="mb-8 border-b border-slate-700 pb-4">
+            <h1 class="text-3xl font-extrabold text-sky-400">🌦️ Simulador: Perceptrón de 4 Variables</h1>
+            <p class="text-slate-400 mt-1">Clasificación Binaria: Probabilidad de Lluvia</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <div class="lg:col-span-4 space-y-6">
+                <section class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-emerald-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path></svg>
+                        Pesos Sinápticos
+                    </h2>
+                    <div class="space-y-2 font-mono text-sm">
+                        <div class="flex justify-between bg-slate-900 p-2 rounded">
+                            <span class="text-slate-400">w1 (Nubosidad)</span>
+                            <span id="w1-lbl" class="text-sky-300 font-bold">0.80</span>
+                        </div>
+                        <div class="flex justify-between bg-slate-900 p-2 rounded">
+                            <span class="text-slate-400">w2 (Temperatura)</span>
+                            <span id="w2-lbl" class="text-sky-300 font-bold">0.20</span>
+                        </div>
+                        <div class="flex justify-between bg-slate-900 p-2 rounded">
+                            <span class="text-slate-400">w3 (Presión)</span>
+                            <span id="w3-lbl" class="text-sky-300 font-bold">0.10</span>
+                        </div>
+                        <div class="flex justify-between bg-slate-900 p-2 rounded">
+                            <span class="text-slate-400">w4 (Humedad)</span>
+                            <span id="w4-lbl" class="text-sky-300 font-bold">-0.50</span>
+                        </div>
+                        <div class="flex justify-between bg-slate-900 p-2 rounded border-t border-slate-700 mt-2 pt-2">
+                            <span class="text-slate-400">Sesgo (b)</span>
+                            <span id="b-lbl" class="text-amber-400 font-bold">0.10</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-slate-900 rounded text-center overflow-hidden">
+                        <p class="text-xs text-slate-500 mb-1">Función de Sumatoria</p>
+                        <p class="text-sm">$$Z = \sum_{i=1}^{4} (x_i \cdot w_i) + b$$</p>
+                    </div>
+
+                    <button onclick="entrenarEpoca()" class="w-full mt-4 bg-sky-600 hover:bg-sky-500 py-3 rounded-lg font-bold transition-all shadow-lg shadow-sky-900/30">
+                        Ejecutar Entrenamiento (Epoch)
+                    </button>
+                </section>
+
+                <section class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl">
+                    <h2 class="text-lg font-bold mb-4 text-amber-400">Prueba del Modelo</h2>
+                    <div class="space-y-4 text-sm font-medium">
+                        <div>
+                            <label class="flex justify-between mb-1">Nubosidad ($x_1$) <span id="val-x1">0</span></label>
+                            <input type="range" id="in-x1" min="0" max="1" step="1" value="0" class="w-full accent-sky-500" oninput="predecir()">
+                        </div>
+                        <div>
+                            <label class="flex justify-between mb-1">Temp. Fría ($x_2$) <span id="val-x2">0</span></label>
+                            <input type="range" id="in-x2" min="0" max="1" step="1" value="0" class="w-full accent-sky-500" oninput="predecir()">
+                        </div>
+                        <div>
+                            <label class="flex justify-between mb-1">Baja Presión ($x_3$) <span id="val-x3">0</span></label>
+                            <input type="range" id="in-x3" min="0" max="1" step="1" value="0" class="w-full accent-sky-500" oninput="predecir()">
+                        </div>
+                        <div>
+                            <label class="flex justify-between mb-1">Humedad ($x_4$) <span id="val-x4">0</span></label>
+                            <input type="range" id="in-x4" min="0" max="1" step="1" value="0" class="w-full accent-sky-500" oninput="predecir()">
+                        </div>
+                        
+                        <div id="panel-resultado" class="mt-4 p-4 text-center rounded-lg font-bold bg-slate-700 text-slate-400 transition-all duration-300">
+                            SELECCIONE VARIABLES
+                        </div>
+                        <div class="text-center text-xs text-slate-500 font-mono mt-2">
+                            Valor Z calculado: <span id="val-z">0.00</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="lg:col-span-8 space-y-6 flex flex-col">
+                <section class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl flex-grow flex flex-col h-full">
+                    <h2 class="text-lg font-bold mb-4">Bitácora de Iteraciones (Regla Delta)</h2>
+                    
+                    <div class="overflow-x-auto bg-slate-900 rounded-lg border border-slate-700 mb-4">
+                        <table class="w-full text-xs font-mono text-left whitespace-nowrap">
+                            <thead class="bg-slate-950 text-slate-400 uppercase border-b border-slate-700">
+                                <tr>
+                                    <th class="p-3">Entrada ($x_1..x_4$)</th>
+                                    <th class="p-3 text-center">Deseado</th>
+                                    <th class="p-3 text-center">Z</th>
+                                    <th class="p-3 text-center">Salida</th>
+                                    <th class="p-3 text-center">Error</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-entrenamiento" class="divide-y divide-slate-800/50">
+                                <tr>
+                                    <td colspan="5" class="p-4 text-center text-slate-500 italic">
+                                        Presiona "Ejecutar Entrenamiento" para comenzar a registrar.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-auto">
+                        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Consola de Convergencia</h3>
+                        <div id="consola" class="p-3 bg-black rounded font-mono text-[11px] text-emerald-500 h-32 overflow-y-auto border border-slate-700 leading-relaxed space-y-1">
+                            > Perceptrón de 4 variables inicializado. Esperando comando...
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. Variables Globales y Estado Inicial ---
+        let pesos = [0.8, 0.2, 0.1, -0.5]; // w1, w2, w3, w4
+        let sesgo = 0.1;
+        const tasaAprendizaje = 0.1;
+        const umbral = 0.5;
+        let epocaActual = 0;
+
+        // Dataset Linealmente Separable (Patrones simulados de clima)
+        // [Nube, TempFria, BajaPresion, Humedad] -> d (1=Llueve, 0=No Llueve)
+        const dataset = [
+            { x: [0, 0, 0, 0], d: 0 }, // Día soleado y seco
+            { x: [1, 0, 0, 0], d: 0 }, // Nublado pero seco
+            { x: [0, 1, 1, 0], d: 0 }, // Frío, baja presión, sin humedad
+            { x: [1, 1, 1, 1], d: 1 }, // Tormenta perfecta (Todas las condiciones)
+            { x: [1, 0, 1, 1], d: 1 }, // Nublado, baja presión, húmedo
+            { x: [0, 0, 1, 1], d: 0 }  // Despejado, baja presión, húmedo
+        ];
+
+        // --- 2. Función de Entrenamiento ---
+        function entrenarEpoca() {
+            epocaActual++;
+            const tbody = document.getElementById('tabla-entrenamiento');
+            const consola = document.getElementById('consola');
+            tbody.innerHTML = ''; // Limpiar tabla
+            let errorTotalEpoca = 0;
+
+            dataset.forEach(caso => {
+                // Sumatoria Ponderada (Z)
+                let z = sesgo;
+                for (let i = 0; i < caso.x.length; i++) {
+                    z += caso.x[i] * pesos[i];
+                }
+
+                // Función de Activación Escalón
+                const salidaCalculada = z >= umbral ? 1 : 0;
+                const error = caso.d - salidaCalculada;
+
+                // Ajuste de pesos (Regla del Perceptrón)
+                if (error !== 0) {
+                    for (let i = 0; i < pesos.length; i++) {
+                        pesos[i] += tasaAprendizaje * error * caso.x[i];
+                    }
+                    sesgo += tasaAprendizaje * error;
+                    errorTotalEpoca += Math.abs(error);
+                }
+
+                // Renderizar fila en la tabla
+                const colorSalida = salidaCalculada === caso.d ? 'text-emerald-400' : 'text-red-400 font-bold';
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-800 transition-colors">
+                        <td class="p-3 text-slate-300">[${caso.x.join(', ')}]</td>
+                        <td class="p-3 text-center font-bold text-white">${caso.d}</td>
+                        <td class="p-3 text-center text-slate-400">${z.toFixed(2)}</td>
+                        <td class="p-3 text-center ${colorSalida}">${salidaCalculada}</td>
+                        <td class="p-3 text-center">${error}</td>
+                    </tr>`;
+            });
+
+            // Actualizar UI
+            actualizarLabelsPesos();
+            
+            consola.innerHTML += `<div>> Época ${epocaActual} completada. Error Total: ${errorTotalEpoca}. Pesos: [${pesos.map(p=>p.toFixed(2)).join(', ')}]</div>`;
+            consola.scrollTop = consola.scrollHeight;
+
+            if (errorTotalEpoca === 0) {
+                consola.innerHTML += `<div class="text-white bg-emerald-600/20 p-1 mt-1 font-bold">> ¡CONVERGENCIA ALCANZADA! El modelo clasifica correctamente.</div>`;
+            }
+
+            predecir(); // Forzar actualización del panel de prueba con los nuevos pesos
+        }
+
+        // --- 3. Funciones de Interfaz ---
+        function actualizarLabelsPesos() {
+            document.getElementById('w1-lbl').innerText = pesos[0].toFixed(2);
+            document.getElementById('w2-lbl').innerText = pesos[1].toFixed(2);
+            document.getElementById('w3-lbl').innerText = pesos[2].toFixed(2);
+            document.getElementById('w4-lbl').innerText = pesos[3].toFixed(2);
+            document.getElementById('b-lbl').innerText = sesgo.toFixed(2);
+        }
+
+        function predecir() {
+            // Leer valores de los sliders
+            const x1 = parseInt(document.getElementById('in-x1').value);
+            const x2 = parseInt(document.getElementById('in-x2').value);
+            const x3 = parseInt(document.getElementById('in-x3').value);
+            const x4 = parseInt(document.getElementById('in-x4').value);
+            
+            document.getElementById('val-x1').innerText = x1;
+            document.getElementById('val-x2').innerText = x2;
+            document.getElementById('val-x3').innerText = x3;
+            document.getElementById('val-x4').innerText = x4;
+
+            // Calcular Z
+            const z = (x1 * pesos[0]) + (x2 * pesos[1]) + (x3 * pesos[2]) + (x4 * pesos[3]) + sesgo;
+            document.getElementById('val-z').innerText = z.toFixed(2);
+
+            // Función de activación
+            const y = z >= umbral ? 1 : 0;
+            
+            // Actualizar UI de predicción
+            const panel = document.getElementById('panel-resultado');
+            if(y === 1) {
+                panel.innerText = "🌧️ PROBABILIDAD DE LLUVIA (1)";
+                panel.className = "mt-4 p-4 text-center rounded-lg font-bold bg-blue-600 text-white shadow-lg shadow-blue-900/40 animate-pulse";
+            } else {
+                panel.innerText = "☀️ DÍA SECO (0)";
+                panel.className = "mt-4 p-4 text-center rounded-lg font-bold bg-slate-700 text-slate-300";
+            }
+        }
+
+        // Inicializar predicción al cargar
+        window.onload = () => predecir();
+    </script>
+</body>
+</html>
